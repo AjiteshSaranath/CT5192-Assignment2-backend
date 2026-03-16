@@ -40,19 +40,20 @@ jobs:
         continue-on-error: true
 
       - name: Create sonar-project.properties
+        env:
+          SONAR_ORG: ${{ secrets.SONAR_ORGANIZATION }}
+          SONAR_KEY: ${{ secrets.SONAR_PROJECT_KEY_BACKEND }}
         run: |
-          cat > sonar-project.properties << EOF
-sonar.organization=${{ secrets.SONAR_ORGANIZATION }}
-sonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_BACKEND }}
-sonar.projectName=LMS Backend (Flask)
-sonar.sources=.
-sonar.tests=tests
-sonar.exclusions=**/tests/**,**/coverage/**,**/__pycache__/**
-sonar.test.inclusions=**/test_*.py
-sonar.python.coverage.reportPaths=coverage.xml
-sonar.sourceEncoding=UTF-8
-sonar.python.version=3.10
-EOF
+          echo "sonar.organization=${SONAR_ORG}" > sonar-project.properties
+          echo "sonar.projectKey=${SONAR_KEY}" >> sonar-project.properties
+          echo "sonar.projectName=LMS Backend (Flask)" >> sonar-project.properties
+          echo "sonar.sources=." >> sonar-project.properties
+          echo "sonar.tests=tests" >> sonar-project.properties
+          echo "sonar.exclusions=**/tests/**,**/coverage/**,**/__pycache__/**" >> sonar-project.properties
+          echo "sonar.test.inclusions=**/test_*.py" >> sonar-project.properties
+          echo "sonar.python.coverage.reportPaths=coverage.xml" >> sonar-project.properties
+          echo "sonar.sourceEncoding=UTF-8" >> sonar-project.properties
+          echo "sonar.python.version=3.10" >> sonar-project.properties
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v5.0.0
