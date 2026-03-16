@@ -8,27 +8,22 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-
-  # ── SonarQube: Static Code Analysis ─────────────────────────────
   sonarqube:
     name: SonarQube Scan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0   # Full history for accurate blame/diff
+          fetch-depth: 0
 
-      # ── Setup test directory structure expected by SonarQube ──
       - name: Setup backend test structure
         run: |
           mkdir -p tests
           touch tests/__init__.py
-          # Move test file to tests/ folder if not already there
           if [ -f test_app.py ]; then
             mv test_app.py tests/
           fi
 
-      # ── Run tests with coverage so SonarQube gets coverage data ──
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -41,29 +36,26 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run tests with coverage
-        run: |
-          python -m pytest tests/ --cov=. --cov-report=xml --cov-report=term-missing
+        run: python -m pytest tests/ --cov=. --cov-report=xml --cov-report=term-missing
         continue-on-error: true
 
-      # ── Write sonar-project.properties with secrets ──────────
       - name: Create sonar-project.properties
         run: |
-          cat > sonar-project.properties << 'EOF'
-          sonar.organization=${{ secrets.SONAR_ORGANIZATION }}
-          sonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_BACKEND }}
-          sonar.projectName=LMS Backend (Flask)
-          sonar.sources=.
-          sonar.tests=tests
-          sonar.exclusions=**/tests/**,**/coverage/**,**/__pycache__/**
-          sonar.test.inclusions=**/test_*.py
-          sonar.python.coverage.reportPaths=coverage.xml
-          sonar.sourceEncoding=UTF-8
-          sonar.python.version=3.10
-          EOF
+          cat > sonar-project.properties << EOF
+sonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+sonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_BACKEND }}
+sonar.projectName=LMS Backend (Flask)
+sonar.sources=.
+sonar.tests=tests
+sonar.exclusions=**/tests/**,**/coverage/**,**/__pycache__/**
+sonar.test.inclusions=**/test_*.py
+sonar.python.coverage.reportPaths=coverage.xml
+sonar.sourceEncoding=UTF-8
+sonar.python.version=3.10
+EOF
 
-      # ── Run SonarCloud scanner ────────────────────────────────
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
